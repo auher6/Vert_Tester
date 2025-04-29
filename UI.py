@@ -136,6 +136,10 @@ class JumpHeightApp(QWidget):
     def setup_upload_video_tab(self):
         """Set up the upload video tab."""
         layout = QVBoxLayout()
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)  # Add this line
+        self.progress_bar.setValue(0)       # Add this line
         
         # Video preview with aspect ratio preservation
         self.video_label = QLabel()
@@ -425,6 +429,7 @@ class JumpHeightApp(QWidget):
         
 
     def calculate_jump_height(self):
+        self.progress_bar.setValue(0)
         if not hasattr(self, 'current_video_path'):
             self.result_label.setText("Error: No video provided")
             return
@@ -733,7 +738,19 @@ class JumpHeightApp(QWidget):
         self.display_frame(frame)
         
         # Update progress
-        self.update_processing_progress()
+        #self.update_processing_progress()
+
+    def update_processing_progress(self):
+        """Update progress bar based on video position"""
+        if hasattr(self, 'cap') and self.cap.isOpened():
+            # Get current frame position and total frames
+            current_frame = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
+            total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            
+            # Calculate percentage and update progress bar
+            if total_frames > 0:
+                progress = int((current_frame / total_frames) * 100)
+                self.progress_bar.setValue(progress)
 
     def process_frame_with_landmarks(self, frame):
         """Process frame and draw pose landmarks"""
@@ -771,6 +788,7 @@ class JumpHeightApp(QWidget):
 
     def finish_processing(self):
         self.cleanup_video_resources()
+        self.progress_bar.setValue(100)
         
         if hasattr(self, 'com_positions') and self.com_positions:
             jump_height_meters, _ = self.jump_analyzer.analyze_jump(self.current_video_path)

@@ -1,10 +1,10 @@
 import sys
 import sqlite3
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel, QFileDialog, QTableWidget, QTableWidgetItem, QTabWidget, QHBoxLayout, QStackedWidget, QSpinBox
+from PyQt6.QtWidgets import QApplication, QProgressBar, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel, QFileDialog, QTableWidget, QTableWidgetItem, QTabWidget, QHBoxLayout, QStackedWidget, QSpinBox
 from PyQt6.QtCore import Qt, QMargins
 from datetime import datetime
-import random
-from PyQt6 import QtCharts
+#import random
+#from PyQt6 import QtCharts
 from PyQt6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis
 from PyQt6.QtGui import QPainter, QImage, QPixmap
 import os
@@ -13,7 +13,8 @@ from PyQt6.QtWidgets import QHeaderView
 from PyQt6.QtWidgets import QInputDialog
 import mediapipe as mp
 import cv2
-
+from PyQt6.QtCore import QTimer
+from Jump_Analyzer import *
 
 class JumpHeightApp(QWidget):
     def __init__(self):

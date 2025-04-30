@@ -20,6 +20,98 @@ class JumpHeightApp(QWidget):
     def __init__(self):
         super().__init__()
 
+        # Light theme with guaranteed text visibility
+        self.setStyleSheet("""
+            /* Base styles - Ensures text is always visible */
+            QWidget {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                font-size: 14px;
+                background-color: #F5F5F5;
+                color: #333333; /* Dark gray text - always visible */
+            }
+            
+            /* Input fields */
+            QLineEdit, QSpinBox {
+                background-color: white;
+                color: #333333;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 6px;
+            }
+            
+            QLineEdit:focus, QSpinBox:focus {
+                border: 1px solid #4A90E2;
+            }
+            
+            /* Buttons */
+            QPushButton {
+                background-color: #4A90E2;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+            }
+            
+            QPushButton:hover {
+                background-color: #3A80D2;
+            }
+            
+            /* Tables */
+            QTableWidget {
+                background-color: white;
+                color: #333333;
+                border: 1px solid #DDDDDD;
+                gridline-color: #EEEEEE;
+            }
+            
+            QHeaderView::section {
+                background-color: #4A90E2;
+                color: white;
+                padding: 6px;
+            }
+            
+            /* Progress bars */
+            QProgressBar {
+                background-color: white;
+                color: #333333;
+                border: 1px solid #DDDDDD;
+                border-radius: 4px;
+            }
+            
+            QProgressBar::chunk {
+                background-color: #4A90E2;
+            }
+            
+            /* Tabs */
+            QTabWidget::pane {
+                border: 1px solid #DDDDDD;
+                background: white;
+            }
+            
+            QTabBar::tab {
+                background: #F0F0F0;
+                color: #333333;
+                border: 1px solid #DDDDDD;
+                padding: 8px 16px;
+            }
+            
+            QTabBar::tab:selected {
+                background: white;
+                border-bottom-color: white;
+            }
+            
+            /* Labels - explicit dark text */
+            QLabel {
+                color: #333333;
+            }
+            
+            /* Special highlighted text */
+            QLabel#result_label {
+                color: #D35400; /* Orange for emphasis */
+                font-weight: bold;
+            }
+        """)
+
         self.setWindowTitle("Vertical Jump Height Tester")
         self.setGeometry(100, 100, 600, 500)
 
@@ -83,91 +175,171 @@ class JumpHeightApp(QWidget):
     def setup_welcome_screen(self):
         """Set up the welcome screen with sign-in and sign-up."""
         layout = QVBoxLayout()
-
-        self.email_input = QLineEdit(self)
+        layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(20)
+        
+        # Add a title label
+        title_label = QLabel("Vertical Jump Height Tester")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #2a4a7f; margin-bottom: 30px;")
+        layout.addWidget(title_label)
+        
+        # Create a card for the form
+        form_card = QWidget()
+        form_card.setObjectName("formCard")
+        form_card.setStyleSheet("""
+            #formCard {
+                background: white;
+                border-radius: 8px;
+                padding: 20px;
+                border: 1px solid #e0e0e0;
+            }
+        """)
+        form_layout = QVBoxLayout(form_card)
+        form_layout.setSpacing(15)
+        
+        self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("Email")
-        self.password_input = QLineEdit(self)
+        self.email_input.setStyleSheet("padding: 8px; color: #333333;")
+        
+        self.password_input = QLineEdit()
         self.password_input.setPlaceholderText("Password")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password_input.setStyleSheet("padding: 8px; color: #333333;")
         
-        self.sign_in_button = QPushButton("Sign In", self)
+        self.sign_in_button = QPushButton("Sign In")
         self.sign_in_button.clicked.connect(self.sign_in)
         
-        self.sign_up_button = QPushButton("Sign Up", self)
+        self.sign_up_button = QPushButton("Sign Up")
         self.sign_up_button.clicked.connect(self.sign_up)
         
-        layout.addWidget(self.email_input)
-        layout.addWidget(self.password_input)
-        layout.addWidget(self.sign_in_button)
-        layout.addWidget(self.sign_up_button)
-
+        form_layout.addWidget(QLabel("Email:"))
+        form_layout.addWidget(self.email_input)
+        form_layout.addWidget(QLabel("Password:"))
+        form_layout.addWidget(self.password_input)
+        form_layout.addWidget(self.sign_in_button)
+        form_layout.addWidget(self.sign_up_button)
+        
+        layout.addWidget(form_card)
+        layout.addStretch()
+        
         self.welcome_screen.setLayout(layout)
-
+        
     def setup_home_screen(self):
         """Set up the home screen after user has signed in."""
-        # Create Tab Widget
+        # Create Tab Widget with improved styling
         self.tabs = QTabWidget()
+        self.tabs.setDocumentMode(True)  # Cleaner tab appearance
         
-        # Add logout button to tab corner
+        # Add logout button with better styling
         self.logout_button = QPushButton("Logout")
         self.logout_button.clicked.connect(self.logout)
+        self.logout_button.setStyleSheet("""
+            QPushButton {
+                background-color: #e74c3c;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #c0392b;
+            }
+        """)
         self.tabs.setCornerWidget(self.logout_button, Qt.Corner.TopRightCorner)
 
-        # Tab 1: Upload Video
+        # Create tabs with consistent padding
         self.upload_video_tab = QWidget()
+        self.upload_video_tab.setContentsMargins(10, 10, 10, 10)
         self.setup_upload_video_tab()
-        self.tabs.addTab(self.upload_video_tab, "Upload Video")
-
-        # Tab 2: Calculate Needed Vertical
+        
         self.calculate_vertical_tab = QWidget()
+        self.calculate_vertical_tab.setContentsMargins(10, 10, 10, 10)
         self.setup_calculate_vertical_tab()
-        self.tabs.addTab(self.calculate_vertical_tab, "Calculate Vertical")
-
-        # Tab 3: View Vertical Data
+        
         self.view_data_tab = QWidget()
+        self.view_data_tab.setContentsMargins(10, 10, 10, 10)
         self.setup_view_data_tab()
+        
+        self.tabs.addTab(self.upload_video_tab, "Upload Video")
+        self.tabs.addTab(self.calculate_vertical_tab, "Calculate Vertical")
         self.tabs.addTab(self.view_data_tab, "View Data")
-
-        # Add tabs to layout
+        
         layout = QVBoxLayout()
         layout.addWidget(self.tabs)
         self.home_screen.setLayout(layout)
 
     def setup_upload_video_tab(self):
-        """Set up the upload video tab."""
+        """Set up the upload video tab with improved layout."""
         layout = QVBoxLayout()
-
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)  # Add this line
-        self.progress_bar.setValue(0)       # Add this line
+        layout.setSpacing(15)
         
-        # Video preview with aspect ratio preservation
+        # Section title
+        title_label = QLabel("Video Analysis")
+        title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #2a4a7f;")
+        layout.addWidget(title_label)
+        
+        # Video preview with card styling
+        video_card = QWidget()
+        video_card.setStyleSheet("background: white; border-radius: 6px; border: 1px solid #e0e0e0;")
+        video_layout = QVBoxLayout(video_card)
+        video_layout.setContentsMargins(10, 10, 10, 10)
+        
         self.video_label = QLabel()
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.video_label.setMinimumSize(640, 480)
-        self.video_label.setStyleSheet("background-color: black;")
-        layout.addWidget(self.video_label)
+        self.video_label.setStyleSheet("background-color: black; border-radius: 4px; ")
+        video_layout.addWidget(self.video_label)
         
-        # Processing controls
-        control_layout = QHBoxLayout()
+        # Processing controls with card styling
+        controls_card = QWidget()
+        controls_card.setStyleSheet(" border-radius: 6px; border: 1px solid #e0e0e0;")
+        controls_layout = QVBoxLayout(controls_card)
+        controls_layout.setContentsMargins(10, 10, 10, 10)
+        
         self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(True)
+        
+        button_layout = QHBoxLayout()
         self.play_pause_button = QPushButton("Pause")
         self.play_pause_button.clicked.connect(self.toggle_playback)
-        
-        control_layout.addWidget(self.progress_bar)
-        control_layout.addWidget(self.play_pause_button)
-        layout.addLayout(control_layout)
-
-        self.upload_button = QPushButton("Upload Video", self)
+        self.upload_button = QPushButton("Upload Video")
         self.upload_button.clicked.connect(self.upload_video)
-        layout.addWidget(self.upload_button)
-
-        self.upload_label = QLabel("Press the button to upload a video", self)
-        layout.addWidget(self.upload_label)
-
-        self.result_label = QLabel("", self)
-        layout.addWidget(self.result_label)
-
+        
+        button_layout.addWidget(self.upload_button)
+        button_layout.addWidget(self.play_pause_button)
+        
+        controls_layout.addWidget(self.progress_bar)
+        controls_layout.addLayout(button_layout)
+        
+        # Results display with card styling
+        results_card = QWidget()
+        results_card.setStyleSheet("background: white; border-radius: 6px; border: 1px solid #e0e0e0;")
+        results_layout = QVBoxLayout(results_card)
+        results_layout.setContentsMargins(10, 10, 10, 10)
+        
+        self.upload_label = QLabel("No video uploaded")
+        self.upload_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        self.result_label = QLabel("")
+        self.result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.result_label.setObjectName("resultLabel")
+        self.result_label.setStyleSheet("""
+            #resultLabel {
+                font-size: 16px;
+                font-weight: bold;
+                color: #333333;
+            }
+        """)
+        
+        results_layout.addWidget(self.upload_label)
+        results_layout.addWidget(self.result_label)
+        
+        # Add all cards to main layout
+        layout.addWidget(video_card)
+        layout.addWidget(controls_card)
+        layout.addWidget(results_card)
+        layout.addStretch()
+        
         self.upload_video_tab.setLayout(layout)
 
     def setup_calculate_vertical_tab(self):
@@ -213,49 +385,94 @@ class JumpHeightApp(QWidget):
     def setup_view_data_tab(self):
         """Set up the tab with larger table and smaller graph."""
         layout = QVBoxLayout()
-
-        # Statistics labels at top
-        stats_layout = QHBoxLayout()
-        self.best_jump_label = QLabel("Best Jump: --")
-        self.average_jump_label = QLabel("Average Jump: --")
-        stats_layout.addWidget(self.best_jump_label)
+        layout.setSpacing(15)
+        
+        # Section title
+        title_label = QLabel("Jump History")
+        title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #2a4a7f;")
+        layout.addWidget(title_label)
+        
+        # Statistics cards
+        stats_container = QWidget()
+        stats_container.setStyleSheet("background: transparent;")
+        stats_layout = QHBoxLayout(stats_container)
+        stats_layout.setContentsMargins(0, 0, 0, 0)
+        stats_layout.setSpacing(15)
+        
+        # Best jump card
+        best_card = QWidget()
+        best_card.setStyleSheet("background: white; border-radius: 6px; border: 1px solid #e0e0e0;")
+        best_layout = QVBoxLayout(best_card)
+        best_layout.setContentsMargins(15, 10, 15, 10)
+        
+        best_title = QLabel("Best Jump")
+        best_title.setStyleSheet("font-weight: bold; color: #4a6fa5;")
+        self.best_jump_label = QLabel("--")
+        self.best_jump_label.setStyleSheet("font-size: 16px;")
+        
+        best_layout.addWidget(best_title)
+        best_layout.addWidget(self.best_jump_label)
+        
+        # Average jump card
+        avg_card = QWidget()
+        avg_card.setStyleSheet("background: white; border-radius: 6px; border: 1px solid #e0e0e0;")
+        avg_layout = QVBoxLayout(avg_card)
+        avg_layout.setContentsMargins(15, 10, 15, 10)
+        
+        avg_title = QLabel("Average Jump")
+        avg_title.setStyleSheet("font-weight: bold; color: #4a6fa5;")
+        self.average_jump_label = QLabel("--")
+        self.average_jump_label.setStyleSheet("font-size: 16px;")
+        
+        avg_layout.addWidget(avg_title)
+        avg_layout.addWidget(self.average_jump_label)
+        
+        stats_layout.addWidget(best_card)
+        stats_layout.addWidget(avg_card)
         stats_layout.addStretch()
-        stats_layout.addWidget(self.average_jump_label)
-        layout.addLayout(stats_layout)
-
+        
+        layout.addWidget(stats_container)
+        
         # Create a splitter for resizable table and chart
         splitter = QSplitter(Qt.Orientation.Vertical)
         
-        # Data Table (takes more space)
+        # Data Table with improved styling
         self.data_table = QTableWidget()
-        self.data_table.setColumnCount(3)  # Added column for delete button
+        self.data_table.setColumnCount(3)
         self.data_table.setHorizontalHeaderLabels(["Date", "Height (inches)", "Delete"])
-        self.data_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)  # Date
-        self.data_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # Height
-        self.data_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)  # Delete
-        # Add these to your table setup for better readability:
+        self.data_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.data_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.data_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.data_table.verticalHeader().setVisible(False)
         self.data_table.setStyleSheet("""
             QTableWidget {
-                font-size: 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                background: white;
+                gridline-color: #e0e0e0;
+                alternate-background-color: #f9f9f9;
             }
-            QHeaderView::section {
+            QTableWidget::item {
                 padding: 5px;
             }
+            QTableWidget::item:selected {
+                background-color: #e1f0ff;
+                color: black;
+            }
         """)
-        self.data_table.verticalHeader().setDefaultSectionSize(25)  # Row height
-        splitter.addWidget(self.data_table)
-
-        # Chart (smaller section)
+        
+        # Chart with improved styling
         self.chart_view = QChartView()
         self.chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.chart_view.setStyleSheet("background: white; border-radius: 6px; border: 1px solid #e0e0e0;")
+        
+        splitter.addWidget(self.data_table)
         splitter.addWidget(self.chart_view)
-
-        # Set initial sizes (table gets 70%, chart gets 30%)
-        splitter.setSizes([500, 500])
+        splitter.setSizes([500, 300])
         
         layout.addWidget(splitter)
         self.view_data_tab.setLayout(layout)
-
+    
     def create_jump_history_chart(self, jump_data):
         series = QLineSeries()
         
@@ -498,6 +715,7 @@ class JumpHeightApp(QWidget):
                 
                 # Delete button
                 delete_btn = QPushButton("Delete")
+                delete_btn.setStyleSheet("padding: none;")
                 delete_btn.clicked.connect(lambda _, r=row, id=record_id: self.delete_entry(r, id))
                 self.data_table.setCellWidget(row, 2, delete_btn)
             

@@ -1,6 +1,6 @@
 import sys
 import sqlite3
-from PyQt6.QtWidgets import QApplication, QProgressBar, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel, QFileDialog, QTableWidget, QTableWidgetItem, QTabWidget, QHBoxLayout, QStackedWidget, QSpinBox
+from PyQt6.QtWidgets import QApplication, QProgressBar, QSizePolicy, QWidget, QVBoxLayout, QLineEdit, QPushButton, QLabel, QFileDialog, QTableWidget, QTableWidgetItem, QTabWidget, QHBoxLayout, QStackedWidget, QSpinBox
 from PyQt6.QtCore import Qt, QMargins
 from datetime import datetime
 #import random
@@ -267,7 +267,7 @@ class JumpHeightApp(QWidget):
         self.home_screen.setLayout(layout)
 
     def setup_upload_video_tab(self):
-        """Set up the upload video tab with improved layout."""
+        """Set up the upload video tab with fixed video display size."""
         layout = QVBoxLayout()
         layout.setSpacing(15)
         
@@ -276,17 +276,22 @@ class JumpHeightApp(QWidget):
         title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #2a4a7f;")
         layout.addWidget(title_label)
         
-        # Video preview with card styling
-        video_card = QWidget()
-        video_card.setStyleSheet("background: white; border-radius: 6px; border: 1px solid #e0e0e0;")
-        video_layout = QVBoxLayout(video_card)
-        video_layout.setContentsMargins(10, 10, 10, 10)
+        # Video container with fixed size
+        video_container = QWidget()
+        video_container.setFixedSize(640, 480)  # Fixed container size
+        video_container.setStyleSheet("background-color: black; border-radius: 4px;")
         
+        # Layout for the container
+        container_layout = QVBoxLayout(video_container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # The video label that will hold the pixmap
         self.video_label = QLabel()
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.video_label.setMinimumSize(640, 480)
-        self.video_label.setStyleSheet("background-color: black; border-radius: 4px; ")
-        video_layout.addWidget(self.video_label)
+        self.video_label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        
+        container_layout.addWidget(self.video_label)
+        layout.addWidget(video_container, alignment=Qt.AlignmentFlag.AlignCenter)
         
         # Processing controls with card styling
         controls_card = QWidget()
@@ -320,7 +325,7 @@ class JumpHeightApp(QWidget):
         self.upload_label = QLabel("No video uploaded")
         self.upload_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        self.result_label = QLabel("")
+        self.result_label = QLabel("Waiting for analysis")
         self.result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.result_label.setObjectName("resultLabel")
         self.result_label.setStyleSheet("""
@@ -335,7 +340,6 @@ class JumpHeightApp(QWidget):
         results_layout.addWidget(self.result_label)
         
         # Add all cards to main layout
-        layout.addWidget(video_card)
         layout.addWidget(controls_card)
         layout.addWidget(results_card)
         layout.addStretch()
@@ -343,41 +347,139 @@ class JumpHeightApp(QWidget):
         self.upload_video_tab.setLayout(layout)
 
     def setup_calculate_vertical_tab(self):
-        """Set up the vertical calculation tab with stored height."""
+        """Set up an aesthetically pleasing vertical calculation tab."""
+        # Main layout with spacing and margins
         layout = QVBoxLayout()
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
-        # Display stored height
-        self.height_label = QLabel("Your stored height:", self)
-        layout.addWidget(self.height_label)
+        # Title section
+        title = QLabel("Vertical Jump Calculator")
+        title.setStyleSheet("""
+            QLabel {
+                font-size: 18px;
+                font-weight: bold;
+                color: #2a4a7f;
+                padding-bottom: 10px;
+            }
+        """)
+        layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.height_display = QLabel("Loading...", self)
-        layout.addWidget(self.height_display)
+        # Create a card for user height information
+        height_card = QWidget()
+        height_card.setStyleSheet("""
+            QWidget {
+                background: white;
+                border-radius: 8px;
+                padding: 15px;
+                border: 1px solid #e0e0e0;
+            }
+        """)
+        height_layout = QVBoxLayout(height_card)
+        height_layout.setSpacing(10)
 
-        # Height update button
-        self.update_height_button = QPushButton("Update Height", self)
+        # Current height display
+        current_height_group = QHBoxLayout()
+        self.height_label = QLabel("Your stored height:")
+        self.height_label.setStyleSheet("font-weight: bold;")
+        
+        self.height_display = QLabel("Loading...")
+        self.height_display.setStyleSheet("""
+            QLabel {
+                color: #4a6fa5;
+                font-size: 15px;
+            }
+        """)
+        
+        current_height_group.addWidget(self.height_label)
+        current_height_group.addWidget(self.height_display)
+        current_height_group.addStretch()
+        
+        height_layout.addLayout(current_height_group)
+
+        # Update height button
+        self.update_height_button = QPushButton("Update Height")
+        self.update_height_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5c9eff;
+                color: white;
+                border-radius: 4px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #4a8de4;
+            }
+        """)
         self.update_height_button.clicked.connect(self.update_user_height)
-        layout.addWidget(self.update_height_button)
+        height_layout.addWidget(self.update_height_button)
 
-        # Height input for calculation
-        self.calc_height_label = QLabel("Enter height for calculation (inches):", self)
-        layout.addWidget(self.calc_height_label)
+        layout.addWidget(height_card)
 
-        self.height_input = QSpinBox(self)
+        # Calculation card
+        calc_card = QWidget()
+        calc_card.setStyleSheet("""
+            QWidget {
+                background: white;
+                border-radius: 8px;
+                padding: 15px;
+                border: 1px solid #e0e0e0;
+            }
+        """)
+        calc_layout = QVBoxLayout(calc_card)
+        calc_layout.setSpacing(15)
+
+        # Height input
+        self.calc_height_label = QLabel("Enter height for calculation:")
+        self.calc_height_label.setStyleSheet("font-weight: bold;")
+        calc_layout.addWidget(self.calc_height_label)
+
+        self.height_input = QSpinBox()
         self.height_input.setRange(48, 96)
         self.height_input.setSuffix(" inches")
-        layout.addWidget(self.height_input)
-
-        # Fixed dunk height
-        self.dunk_height = 125
+        self.height_input.setStyleSheet("""
+            QSpinBox {
+                padding: 8px;
+                border: 1px solid #d0d0d0;
+                border-radius: 4px;
+            }
+        """)
+        calc_layout.addWidget(self.height_input)
 
         # Calculate button
-        self.calculate_button = QPushButton("Calculate Vertical Jump", self)
+        self.calculate_button = QPushButton("Calculate Vertical Needed to Dunk")
+        self.calculate_button.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                border-radius: 4px;
+                padding: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #219955;
+            }
+        """)
         self.calculate_button.clicked.connect(self.calculate_vertical)
-        layout.addWidget(self.calculate_button)
+        calc_layout.addWidget(self.calculate_button)
 
         # Result display
-        self.vertical_result_label = QLabel("", self)
-        layout.addWidget(self.vertical_result_label)
+        self.vertical_result_label = QLabel()
+        self.vertical_result_label.setStyleSheet("""
+            QLabel {
+                font-size: 15px;
+                color: #333;
+                margin-top: 10px;
+                padding: 10px;
+                background-color: #f8f9fa;
+                border-radius: 4px;
+            }
+        """)
+        self.vertical_result_label.setWordWrap(True)
+        self.vertical_result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        calc_layout.addWidget(self.vertical_result_label)
+
+        layout.addWidget(calc_card)
+        layout.addStretch()
 
         self.calculate_vertical_tab.setLayout(layout)
 
@@ -442,7 +544,8 @@ class JumpHeightApp(QWidget):
         self.data_table.setHorizontalHeaderLabels(["Date", "Height (inches)", "Delete"])
         self.data_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.data_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        self.data_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.data_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        self.data_table.setColumnWidth(2, 200)
         self.data_table.verticalHeader().setVisible(False)
         self.data_table.setStyleSheet("""
             QTableWidget {
@@ -872,6 +975,7 @@ class JumpHeightApp(QWidget):
                 height_in = cursor.fetchone()[0]
                 conn.close()
             
+            self.dunk_height = 125
             estimated_reach = round(height_in + 14)
             needed_vert = self.dunk_height - estimated_reach
 
@@ -924,15 +1028,29 @@ class JumpHeightApp(QWidget):
             QImage.Format.Format_RGB888
         )
         
-        # Scale and display
-        self.video_label.setPixmap(
-            QPixmap.fromImage(qt_image).scaled(
-                self.video_label.width(),
-                self.video_label.height(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
+        # Scale to fit within the fixed label size while maintaining aspect ratio
+        pixmap = QPixmap.fromImage(qt_image)
+        pixmap = pixmap.scaled(
+            self.video_label.width(),
+            self.video_label.height(),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
         )
+        
+        # Create a new pixmap with black background
+        final_pixmap = QPixmap(self.video_label.size())
+        final_pixmap.fill(Qt.GlobalColor.black)
+        
+        # Center the scaled image on the black background
+        painter = QPainter(final_pixmap)
+        painter.drawPixmap(
+            (final_pixmap.width() - pixmap.width()) // 2,
+            (final_pixmap.height() - pixmap.height()) // 2,
+            pixmap
+        )
+        painter.end()
+        
+        self.video_label.setPixmap(final_pixmap)
 
     def toggle_playback(self):
         """Pause/resume video processing"""

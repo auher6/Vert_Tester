@@ -1126,15 +1126,38 @@ class JumpHeightApp(QWidget):
         self.cleanup_video_resources()
         self.progress_bar.setValue(100)
         
-        if hasattr(self, 'com_positions') and self.com_positions:
-            jump_height_meters, _ = self.jump_analyzer.analyze_jump(self.current_video_path)
-            if jump_height_meters:
-                jump_height_inches = jump_height_meters / 0.0254
-                self.save_jump_data(jump_height_inches)
-                self.show_results(jump_height_inches)
-                return
+        # Check if we have valid data to analyze
+        if not hasattr(self, 'com_positions') or not self.com_positions:
+            print("Error: No valid COM positions data")
+            self.show_error_message()
+            return
         
-        self.show_error_message()
+        try:
+            # Perform jump analysis
+            jump_height_meters, com_data = self.jump_analyzer.analyze_jump(self.current_video_path)
+            
+            if jump_height_meters is None:
+                print("Analysis failed - trying fallback method")
+                # Try calculating using COM displacement as fallback
+                if hasattr(self.jump_analyzer, 'pixel_scale') and self.jump_analyzer.pixel_scale:
+                    lowest_com = max(self.com_positions)
+                    highest_com = min(self.com_positions)
+                    jump_height_pixels = lowest_com - highest_com
+                    jump_height_meters = jump_height_pixels * self.jump_analyzer.pixel_scale
+                    jump_height_inches = jump_height_meters * 39.37
+                    print(f"Used fallback displacement method: {jump_height_inches:.1f} inches")
+                else:
+                    raise ValueError("No valid analysis method available")
+            else:
+                jump_height_inches = jump_height_meters * 39.37
+            
+            # Save and show results if we have valid data
+            self.save_jump_data(jump_height_inches)
+            self.show_results(jump_height_inches)
+            
+        except Exception as e:
+            print(f"Final analysis error: {str(e)}")
+            self.show_error_message()
 
     def show_results(self, jump_height_inches):
         """Display successful results"""

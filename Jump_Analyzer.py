@@ -1,7 +1,6 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from scipy.signal import find_peaks
 
 class JumpAnalyzer:
     def __init__(self, person_height_meters):
